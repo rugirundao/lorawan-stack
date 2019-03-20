@@ -117,6 +117,7 @@ const component = function (type) {
   case 'number':
   case 'password':
   case 'byte':
+  case 'textarea':
     return Input
 
   case 'select':
@@ -215,6 +216,7 @@ const Field = function (props) {
       <Component
         className={style.component}
         id={id}
+        component={type === 'textarea' ? 'textarea' : undefined}
         {...filterPropsByType(type, rest)}
       />
       {hasMessages
