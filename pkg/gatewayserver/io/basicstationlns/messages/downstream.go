@@ -57,7 +57,6 @@ func (dnmsg DownlinkMessage) MarshalJSON() ([]byte, error) {
 // FromNSDownlinkMessage translates the ttnpb.DownlinkMessage to LNS DownlinkMessage "dnmsg".
 func (dnmsg *DownlinkMessage) FromNSDownlinkMessage(ids ttnpb.GatewayIdentifiers, down ttnpb.DownlinkMessage, dlToken int64) {
 	scheduledMsg := down.GetScheduled()
-	dnmsg.DevEUI = basicstation.EUI{EUI64: *down.EndDeviceIDs.DevEUI}
 	dnmsg.Pdu = string(down.GetRawPayload())
 	dnmsg.RCtx = int64(scheduledMsg.Downlink.AntennaIndex)
 	dnmsg.Diid = dlToken

@@ -686,9 +686,8 @@ func TestTraffic(t *testing.T) {
 				},
 			},
 			ExpectedBSDownstream: messages.DownlinkMessage{
-				DevEUI:      basicstation.EUI{EUI64: types.EUI64{0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11}},
 				DeviceClass: 0,
-				Diid:        1,
+				Diid:        0,
 				Pdu:         "Ymxhamthc25kJ3M==",
 				RxDelay:     1,
 				Rx2Freq:     868100000,
