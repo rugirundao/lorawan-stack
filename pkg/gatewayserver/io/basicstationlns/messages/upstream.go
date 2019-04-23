@@ -16,6 +16,7 @@ package messages
 
 import (
 	"encoding/json"
+	"math"
 	"time"
 
 	"go.thethings.network/lorawan-stack/pkg/basicstation"
@@ -32,7 +33,7 @@ var (
 
 // UpInfo provides additional metadata on each upstream message.
 type UpInfo struct {
-	RxTime  int64   `json:"rxtime"`
+	RxTime  float64 `json:"rxtime"`
 	RCtx    int64   `json:"rtcx"`
 	XTime   int64   `json:"xtime"`
 	GPSTime int64   `json:"gpstime"`
@@ -119,9 +120,9 @@ func (conf TxConfirmation) MarshalJSON() ([]byte, error) {
 }
 
 // ToUplinkMessage extracts fields from the basic station Join Request "jreq" message and converts them into an UplinkMessage for the network server.
-func (req *JoinRequest) ToUplinkMessage(ids ttnpb.GatewayIdentifiers, bandID string) (*ttnpb.UplinkMessage, error) {
+func (req *JoinRequest) ToUplinkMessage(ids ttnpb.GatewayIdentifiers, bandID string, receivedAt time.Time) (*ttnpb.UplinkMessage, error) {
 	var up ttnpb.UplinkMessage
-	up.ReceivedAt = time.Now()
+	up.ReceivedAt = receivedAt
 
 	var parsedMHDR ttnpb.MHDR
 	if err := lorawan.UnmarshalMHDR([]byte{byte(req.MHdr)}, &parsedMHDR); err != nil {
@@ -158,10 +159,12 @@ func (req *JoinRequest) ToUplinkMessage(ids ttnpb.GatewayIdentifiers, bandID str
 	}
 	ulTokenBytes, err := ulToken.Marshal()
 	if err != nil {
-		return nil, errJoinRequestMessage.WithCause(err)
+		return nil, err
 	}
 
-	rxTime := time.Unix(req.RadioMetaData.UpInfo.RxTime, 0)
+	sec, nsec := math.Modf(req.RadioMetaData.UpInfo.RxTime)
+	rxTime := time.Unix(int64(sec), int64(nsec*(1e9)))
+
 	rxMetadata := &ttnpb.RxMetadata{
 		GatewayIdentifiers: ids,
 		Time:               &rxTime,
@@ -185,9 +188,9 @@ func (req *JoinRequest) ToUplinkMessage(ids ttnpb.GatewayIdentifiers, bandID str
 }
 
 // ToUplinkMessage extracts fields from the basic station Join Request "jreq" message and converts them into an UplinkMessage for the network server.
-func (updf *UplinkDataFrame) ToUplinkMessage(ids ttnpb.GatewayIdentifiers, bandID string) (*ttnpb.UplinkMessage, error) {
+func (updf *UplinkDataFrame) ToUplinkMessage(ids ttnpb.GatewayIdentifiers, bandID string, receivedAt time.Time) (*ttnpb.UplinkMessage, error) {
 	var up ttnpb.UplinkMessage
-	up.ReceivedAt = time.Now()
+	up.ReceivedAt = receivedAt
 
 	var parsedMHDR ttnpb.MHDR
 	if err := lorawan.UnmarshalMHDR([]byte{byte(updf.MHdr)}, &parsedMHDR); err != nil {
@@ -202,11 +205,11 @@ func (updf *UplinkDataFrame) ToUplinkMessage(ids ttnpb.GatewayIdentifiers, bandI
 		return nil, errUplinkDataFrame.WithCause(err)
 	}
 
-	var fport uint32
+	var fPort uint32
 	if updf.FPort == -1 {
-		fport = 0
+		fPort = 0
 	} else {
-		fport = uint32(updf.FPort)
+		fPort = uint32(updf.FPort)
 	}
 
 	devAddrBytes, err := getInt32AsByteSlice(updf.DevAddr)
@@ -214,12 +217,12 @@ func (updf *UplinkDataFrame) ToUplinkMessage(ids ttnpb.GatewayIdentifiers, bandI
 		return nil, errUplinkDataFrame.WithCause(err)
 	}
 	var devAddr types.DevAddr
-	if err = devAddr.UnmarshalBinary(devAddrBytes); err != nil {
+	if err := devAddr.UnmarshalBinary(devAddrBytes); err != nil {
 		return nil, errUplinkDataFrame.WithCause(err)
 	}
 
 	var fctrl ttnpb.FCtrl
-	if err = lorawan.UnmarshalFCtrl([]byte{byte(updf.FCtrl)}, &fctrl, true); err != nil {
+	if err := lorawan.UnmarshalFCtrl([]byte{byte(updf.FCtrl)}, &fctrl, true); err != nil {
 		return nil, errUplinkDataFrame.WithCause(err)
 	}
 
@@ -227,7 +230,7 @@ func (updf *UplinkDataFrame) ToUplinkMessage(ids ttnpb.GatewayIdentifiers, bandI
 		MHDR: parsedMHDR,
 		MIC:  micBytes,
 		Payload: &ttnpb.Message_MACPayload{MACPayload: &ttnpb.MACPayload{
-			FPort:      fport,
+			FPort:      fPort,
 			FRMPayload: []byte(updf.FRMPayload),
 			FHDR: ttnpb.FHDR{
 				DevAddr: devAddr,
@@ -257,7 +260,9 @@ func (updf *UplinkDataFrame) ToUplinkMessage(ids ttnpb.GatewayIdentifiers, bandI
 		return nil, errJoinRequestMessage.WithCause(err)
 	}
 
-	rxTime := time.Unix(updf.RadioMetaData.UpInfo.RxTime, 0)
+	sec, nsec := math.Modf(updf.RadioMetaData.UpInfo.RxTime)
+	rxTime := time.Unix(int64(sec), int64(nsec*(1e9)))
+
 	rxMetadata := &ttnpb.RxMetadata{
 		GatewayIdentifiers: ids,
 		Time:               &rxTime,

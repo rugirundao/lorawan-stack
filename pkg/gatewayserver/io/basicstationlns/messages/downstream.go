@@ -54,8 +54,8 @@ func (dnmsg DownlinkMessage) MarshalJSON() ([]byte, error) {
 	})
 }
 
-// FromNSDownlinkMessage translates the ttnpb.DownlinkMessage to LNS DownlinkMessage "dnmsg".
-func (dnmsg *DownlinkMessage) FromNSDownlinkMessage(ids ttnpb.GatewayIdentifiers, down ttnpb.DownlinkMessage, dlToken int64) {
+// FromDownlinkMessage translates the ttnpb.DownlinkMessage to LNS DownlinkMessage "dnmsg".
+func (dnmsg *DownlinkMessage) FromDownlinkMessage(ids ttnpb.GatewayIdentifiers, down ttnpb.DownlinkMessage, dlToken int64) {
 	scheduledMsg := down.GetScheduled()
 	dnmsg.Pdu = string(down.GetRawPayload())
 	dnmsg.RCtx = int64(scheduledMsg.Downlink.AntennaIndex)
@@ -79,5 +79,6 @@ func (dnmsg *DownlinkMessage) FromNSDownlinkMessage(ids ttnpb.GatewayIdentifiers
 	dnmsg.DeviceClass = uint(ttnpb.CLASS_A)
 	// Estimate the xtime based on the timestamp; xtime = timestamp - (rxdelay+1).
 	t := time.Unix(int64(scheduledMsg.Timestamp), 0)
-	dnmsg.XTime = t.Add(time.Duration(-(dnmsg.RxDelay + 1)) * time.Minute).Unix()
+	offset := time.Duration((dnmsg.RxDelay + 1)) * time.Second
+	dnmsg.XTime = t.Add(-offset).Unix()
 }

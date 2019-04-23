@@ -136,6 +136,7 @@ func (s *srv) handleDiscover(c echo.Context) error {
 }
 
 func (s *srv) handleTraffic(c echo.Context) error {
+	receivedAt := time.Now()
 	uid := c.Param("uid")
 	ids, err := unique.ToGatewayID(uid)
 	if err != nil {
@@ -194,14 +195,14 @@ func (s *srv) handleTraffic(c echo.Context) error {
 				dnmsg := messages.DownlinkMessage{}
 				token := s.correlations.GenerateNextToken()
 				s.correlations.Store(token, down.GetCorrelationIDs())
-				dnmsg.FromNSDownlinkMessage(ids, *down, token)
+				dnmsg.FromDownlinkMessage(ids, *down, token)
 				msg, err := dnmsg.MarshalJSON()
 				if err != nil {
 					logger.WithError(err).Error("Failed to marshal downlink message")
 					continue
 				}
 
-				logger.Info("Sending downlink message")
+				logger.Info("Send downlink message")
 				if err := ws.WriteMessage(websocket.TextMessage, msg); err != nil {
 					logger.WithError(err).Error("Failed to send downlink message")
 				}
@@ -257,7 +258,7 @@ func (s *srv) handleTraffic(c echo.Context) error {
 				logger.WithError(err).Debug("Failed to unmarshal join-request message")
 				return err
 			}
-			up, err := jreq.ToUplinkMessage(ids, fp.BandID)
+			up, err := jreq.ToUplinkMessage(ids, fp.BandID, receivedAt)
 			if err != nil {
 				logger.WithError(err).Debug("Failed to parse join-request message")
 				return err
@@ -272,7 +273,7 @@ func (s *srv) handleTraffic(c echo.Context) error {
 				logger.WithError(err).Debug("Failed to unmarshal uplink data frame")
 				return err
 			}
-			up, err := updf.ToUplinkMessage(ids, fp.BandID)
+			up, err := updf.ToUplinkMessage(ids, fp.BandID, receivedAt)
 			if err != nil {
 				logger.WithError(err).Debug("Failed to parse uplink data frame")
 				return err

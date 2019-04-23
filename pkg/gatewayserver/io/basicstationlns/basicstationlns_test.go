@@ -61,7 +61,7 @@ func eui64Ptr(eui types.EUI64) *types.EUI64 { return &eui }
 
 func TestAuthentication(t *testing.T) {
 	// TODO: Test authentication. We're gonna provision authentication tokens, which may be API keys.
-	// https://github.com/TheThingsNetwork/lorawan-stack/issues/75
+	// https://github.com/TheThingsNetwork/lorawan-stack/issues/558
 }
 
 func TestDiscover(t *testing.T) {
@@ -78,9 +78,7 @@ func TestDiscover(t *testing.T) {
 	gs := mock.NewServer()
 	srv := New(ctx, gs)
 	c.RegisterWeb(srv)
-	if err := c.Start(); err != nil {
-		panic(err)
-	}
+	test.Must(nil, c.Start())
 	defer c.Close()
 
 	// Invalid Endpoints
@@ -151,9 +149,8 @@ func TestDiscover(t *testing.T) {
 					close(resCh)
 					if err == websocket.ErrBadHandshake {
 						return
-					} else {
-						t.Fatalf("Failed to read message: %v", err)
 					}
+					t.Fatalf("Failed to read message: %v", err)
 				}
 				resCh <- data
 			}()
@@ -294,9 +291,7 @@ func TestVersion(t *testing.T) {
 	gs := mock.NewServer()
 	srv := New(ctx, gs)
 	c.RegisterWeb(srv)
-	if err := c.Start(); err != nil {
-		panic(err)
-	}
+	test.Must(nil, c.Start())
 	defer c.Close()
 	gs.RegisterGateway(ctx, registeredGatewayID, &registeredGateway)
 
@@ -381,8 +376,7 @@ func TestVersion(t *testing.T) {
 			go func() {
 				_, data, err := conn.ReadMessage()
 				if err != nil {
-					t.Logf("Failed to read message: %v", err)
-					t.FailNow()
+					t.Fatalf("Failed to read message: %v", err)
 				}
 				resCh <- data
 			}()
@@ -415,9 +409,7 @@ func TestUplink(t *testing.T) {
 	gs := mock.NewServer()
 	srv := New(ctx, gs)
 	c.RegisterWeb(srv)
-	if err := c.Start(); err != nil {
-		panic(err)
-	}
+	test.Must(nil, c.Start())
 	defer c.Close()
 
 	gs.RegisterGateway(ctx, registeredGatewayID, &registeredGateway)
@@ -437,13 +429,13 @@ func TestUplink(t *testing.T) {
 
 	for _, tc := range []struct {
 		Name                  string
-		TimeStamp             int64
+		Timestamp             int64
 		Message               interface{}
 		ExpectedUplinkMessage ttnpb.UplinkMessage
 	}{
 		{
 			Name:      "JoinRequest",
-			TimeStamp: 12666373963464220,
+			Timestamp: 12666373963464220,
 			Message: messages.JoinRequest{
 				MHdr:     0,
 				DevEUI:   basicstation.EUI{Prefix: "DevEui", EUI64: types.EUI64{0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11}},
@@ -531,9 +523,7 @@ func TestTraffic(t *testing.T) {
 	gs := mock.NewServer()
 	srv := New(ctx, gs)
 	c.RegisterWeb(srv)
-	if err := c.Start(); err != nil {
-		panic(err)
-	}
+	test.Must(nil, c.Start())
 	defer c.Close()
 
 	gs.RegisterGateway(ctx, registeredGatewayID, &registeredGateway)
@@ -775,8 +765,7 @@ func TestTraffic(t *testing.T) {
 				go func() {
 					_, data, err := wsConn.ReadMessage()
 					if err != nil {
-						t.Logf("Failed to read message: %v", err)
-						t.FailNow()
+						t.Fatalf("Failed to read message: %v", err)
 					}
 					resCh <- data
 				}()

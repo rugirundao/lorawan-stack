@@ -58,7 +58,7 @@ func TestDownlinkMessage(t *testing.T) {
 				Rx2Freq:     868500000,
 				RCtx:        2,
 				Priority:    25,
-				XTime:       1554300667,
+				XTime:       1554300785,
 			},
 		},
 		{
@@ -95,7 +95,7 @@ func TestDownlinkMessage(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			a := assertions.New(t)
 			dnmsg := DownlinkMessage{}
-			dnmsg.FromNSDownlinkMessage(tc.GatewayIDs, tc.NSDownlinkMessage, 0)
+			dnmsg.FromDownlinkMessage(tc.GatewayIDs, tc.NSDownlinkMessage, 0)
 			if !a.So(dnmsg, should.Resemble, tc.ExpectedDownlinkMessage) {
 				t.Fatalf("Invalid DownlinkMessage: %v", dnmsg)
 			}
