@@ -14,10 +14,8 @@
 
 import React, { Component } from 'react'
 import { Container, Col, Row } from 'react-grid-system'
-import * as Yup from 'yup'
 import { connect } from 'react-redux'
 import bind from 'autobind-decorator'
-import { defineMessages } from 'react-intl'
 import { push } from 'connected-react-router'
 
 import Form from '../../../components/form'
@@ -28,93 +26,13 @@ import { withBreadcrumb } from '../../../components/breadcrumbs/context'
 import FieldGroup from '../../../components/field/group'
 import Message from '../../../lib/components/message'
 import IntlHelmet from '../../../lib/components/intl-helmet'
-import { id as deviceIdRegexp } from '../../lib/regexp'
 import SubmitBar from '../../../components/submit-bar'
 
 import api from '../../api'
-
 import sharedMessages from '../../../lib/shared-messages'
-
+import m from './messages'
+import validationSchema from './validation-schema'
 import style from './device-add.styl'
-
-const m = defineMessages({
-  lorawanOptions: 'LoRaWAN Options',
-  activationSettings: 'Activation Settings',
-  createDevice: 'Create Device',
-  deviceIdPlaceholder: 'my-new-device',
-  deviceNamePlaceholder: 'My New Device',
-  deviceIdDescription: 'Unique Identifier of your device; this cannot be changed afterwards',
-  deviceNameDescription: 'Human friendly name of your device for display purposes',
-  deviceDescDescription: 'Optional device description; can also be used to save notes about the device',
-  joinEUIPlaceholder: 'The connected Join EUI',
-  leaveBlankPlaceholder: 'Leave blank to generate automatically',
-  resetsJoinNonces: 'Resets Join Nonces',
-  deviceEUIDescription: 'The device EUI is the unique identifier for this device on the network. Can be changed later.',
-  nwkKeyDescription: 'The encrypted Network Key',
-  appKeyDescription: 'The App Key is used to secure the communication between your device and the network.',
-  appSKeyDescription: 'App Session Key',
-  fwdNtwkKeyDescription: 'Forwarding Network Session Integrity Key (or LoRaWAN 1.0.x NwkSKey)',
-  sNtwkSIKeyDescription: 'Serving Network Session Integrity Key (only for LoRaWAN 1.1+)',
-  ntwkSEncKeyDescription: 'Network Session Encryption Key (only for LoRaWAN 1.1+)',
-  validate8: 'This value needs to be exactly 8 characters long',
-  validate16: 'This value needs to be exactly 16 characters long',
-  validate32: 'This values needs to be exactly 32 characters long',
-})
-
-const validationSchema = Yup.object().shape({
-  ids: Yup.object().shape({
-    device_id: Yup.string()
-      .matches(deviceIdRegexp, sharedMessages.validateAlphanum)
-      .min(2, sharedMessages.validateTooShort)
-      .max(36, sharedMessages.validateTooLong)
-      .required(sharedMessages.validateRequired),
-  }).when('activation_mode', {
-    is: 'otaa',
-    then: Yup.object().shape({
-      join_eui: Yup.string()
-        .length(8 * 2, m.validate16)
-        .required(sharedMessages.validateRequired), // 8 Byte hex
-      dev_eui: Yup.string()
-        .length(8 * 2, m.validate16)
-        .required(sharedMessages.validateRequired), // 8 Byte hex
-    }),
-  }),
-  session: Yup.object().shape({
-    dev_addr: Yup.string().length(4 * 2, m.validate8), // 4 Byte hex
-    keys: Yup.object().shape({
-      f_nwk_s_int_key: Yup.object().shape({
-        key: Yup.string().length(16 * 2, m.validate32), // 16 Byte hex
-      }),
-      s_nwk_s_int_key: Yup.object().shape({
-        key: Yup.string().length(16 * 2, m.validate32), // 16 Byte hex
-      }),
-      nwk_s_enc_key: Yup.object().shape({
-        key: Yup.string().length(16 * 2, m.validate32), // 16 Byte hex
-      }),
-      app_s_key: Yup.object().shape({
-        key: Yup.string().length(16 * 2, m.validate32), // 16 Byte hex
-      }),
-    }),
-  }),
-  root_keys: Yup.object().shape({
-    nwk_key: Yup.object().shape({
-      key: Yup.string().length(16 * 2, m.validate32), // 16 Byte hex
-    }),
-    app_key: Yup.object().shape({
-      key: Yup.string().length(16 * 2, m.validate32), // 16 Byte hex
-    }),
-  }),
-  name: Yup.string()
-    .min(2, sharedMessages.validateTooShort)
-    .max(50, sharedMessages.validateTooLong),
-  description: Yup.string()
-    .max(2000, sharedMessages.validateTooLong),
-  lorawan_version: Yup.string().required(sharedMessages.validateRequired),
-  lorawan_phy_version: Yup.string().required(sharedMessages.validateRequired),
-  supports_class_c: Yup.boolean(),
-  activation_mode: Yup.string().required(),
-  supports_join_nonces: Yup.boolean(),
-})
 
 @withBreadcrumb('device.add', function (props) {
   const { appId } = props.match.params
