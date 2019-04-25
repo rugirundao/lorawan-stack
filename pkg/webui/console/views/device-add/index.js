@@ -18,6 +18,7 @@ import * as Yup from 'yup'
 import { connect } from 'react-redux'
 import bind from 'autobind-decorator'
 import { defineMessages } from 'react-intl'
+import { push } from 'connected-react-router'
 
 import Form from '../../../components/form'
 import Field from '../../../components/field'
@@ -29,6 +30,8 @@ import Message from '../../../lib/components/message'
 import IntlHelmet from '../../../lib/components/intl-helmet'
 import { id as deviceIdRegexp } from '../../lib/regexp'
 import SubmitBar from '../../../components/submit-bar'
+
+import api from '../../api'
 
 import sharedMessages from '../../../lib/shared-messages'
 
@@ -129,7 +132,33 @@ export default class DeviceAdd extends Component {
     otaa: true,
   }
 
-  handleSubmit (values) {
+  async handleSubmit (values, { setSubmitting, resetForm }) {
+    const { match, dispatch } = this.props
+    const { appId } = match.params
+
+    const device = {
+      ...values,
+      ids: {
+        ...values.ids,
+      },
+      frequency_plan_id: 'EU_863_870',
+    }
+    delete device.activation_mode
+
+    await this.setState({ error: '' })
+    try {
+      const result = await api.devices.create(appId, device, {
+        abp: values.activation_mode === 'abp',
+        withRootKeys: true,
+      })
+
+      const { ids: { device_id }} = result
+      dispatch(push(`/console/applications/${appId}/devices/${device_id}`))
+    } catch (error) {
+      resetForm(values)
+
+      await this.setState({ error })
+    }
   }
 
   handleOTAASelect () {
