@@ -44,7 +44,7 @@ const upper = function (str) {
 }
 
 const clean = function (str) {
-  return str.replace(/[ \u2000]/g, '')
+  return str.replace(/[ ·]/g, '')
 }
 
 const Placeholder = function (props) {
@@ -126,7 +126,7 @@ export default class ByteInput extends React.Component {
         className={classnames(className, style.byte)}
         value={value}
         mask={mask(min, max)}
-        placeholderChar={'\u2000'}
+        placeholderChar="·"
         keepCharPositions={false}
         pipe={upper}
         onChange={this.onChange}
