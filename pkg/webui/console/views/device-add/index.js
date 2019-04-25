@@ -71,8 +71,12 @@ const validationSchema = Yup.object().shape({
   }).when('activation_mode', {
     is: 'otaa',
     then: Yup.object().shape({
-      join_eui: Yup.string().length(8 * 2, m.validate16).required(), // 8 Byte hex
-      dev_eui: Yup.string().length(8 * 2, m.validate16).required(), // 8 Byte hex
+      join_eui: Yup.string()
+        .length(8 * 2, m.validate16)
+        .required(sharedMessages.validateRequired), // 8 Byte hex
+      dev_eui: Yup.string()
+        .length(8 * 2, m.validate16)
+        .required(sharedMessages.validateRequired), // 8 Byte hex
     }),
   }),
   session: Yup.object().shape({
@@ -286,8 +290,22 @@ export default class DeviceAdd extends Component {
               error={error}
               onSubmit={this.handleSubmit}
               validationSchema={validationSchema}
+              submitEnabledWhenInvalid
               isInitialValid={false}
-              initialValues={{ ids: {}, activation_mode: 'otaa' }}
+              initialValues={
+                {
+                  ids: {
+                    device_id: undefined,
+                    join_eui: undefined,
+                    dev_eui: undefined,
+                  },
+                  activation_mode: 'otaa',
+                  lorawan_version: undefined,
+                  lorawan_phy_version: undefined,
+                  root_keys: {},
+                  session: {},
+                }
+              }
               mapErrorsToFields={{
                 id_taken: 'application_id',
                 identifiers: 'application_id',
