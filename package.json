@@ -122,7 +122,7 @@
     "react-toastify": "^4.5.2",
     "redux": "^3.7.2",
     "redux-logic": "^0.15.0",
-    "ttn-lw": "file:sdk/js",
+    "ttn-lw": "3.8.1",
     "ulid": "^2.3.0",
     "yup": "^0.26.6"
   },
