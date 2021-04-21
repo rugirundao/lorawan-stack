@@ -1,0 +1,17 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.19.0
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-AXIOS-174505:
+    - ttn-lw > axios:
+        patched: '2021-04-21T11:36:24.053Z'
+  SNYK-JS-LODASH-567746:
+    - react-grid-system > lodash:
+        patched: '2021-04-21T11:36:24.053Z'
+    - redux > lodash:
+        patched: '2021-04-21T11:36:24.053Z'
+    - yup > lodash:
+        patched: '2021-04-21T11:36:24.053Z'
+    - react-select > emotion > babel-plugin-emotion > @babel/helper-module-imports > @babel/types > lodash:
+        patched: '2021-04-21T11:36:24.053Z'
