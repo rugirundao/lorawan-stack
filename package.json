@@ -124,7 +124,7 @@
     "redux-logic": "^0.15.0",
     "ttn-lw": "file:sdk/js",
     "ulid": "^2.3.0",
-    "yup": "^0.26.6"
+    "yup": "^0.30.0"
   },
   "jest": {
     "setupFiles": [
